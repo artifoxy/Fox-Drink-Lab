@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Fox Drink Lab</title>
+  <meta name="theme-color" content="#d68f6c" />
+  <style>
+    :root{
+      --bg1:#fffaf7;
+      --bg2:#fff3ec;
+      --bg3:#fdf7f2;
+      --card:#ffffffcc;
+      --white:#fff;
+      --text:#4f463f;
+      --muted:#8a7d74;
+      --line:#ead7cc;
+      --line2:#f0dfd5;
+      --accent:#d68f6c;
+      --accent-soft:#f6e7de;
+      --chip:#fff8f4;
+      --chip2:#fff4ee;
+      --tag:#f8ece6;
+      --shadow:0 10px 30px rgba(214,166,138,.12);
+      --shadow2:0 6px 18px rgba(214,166,138,.08);
+      --radius:28px;
+    }
+
+    * { box-sizing: border-box; }
+    body{
+      margin:0;
+      font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,"PingFang SC","Helvetica Neue",Arial,sans-serif;
+      color:var(--text);
+      background:linear-gradient(180deg,var(--bg1) 0%,var(--bg2) 48%,var(--bg3) 100%);
+      min-height:100vh;
+    }
+    .wrap{
+      max-width:1100px;
+      margin:0 auto;
+      padding:24px;
+    }
+    .hero,.panel,.results{
+      border:1px solid rgba(255,255,255,.7);
+      background:var(--card);
+      backdrop-filter: blur(10px);
+      box-shadow:var(--shadow);
+      border-radius:var(--radius);
+    }
+    .hero{ padding:24px; margin-bottom:20px; }
+    .badge{
+      display:inline-flex;
+      align-items:center;
+      border-radius:999px;
+      background:#f6d8ca;
+      padding:6px 12px;
+      font-size:12px;
+      color:#685d56;
+    }
+    h1{
+      margin:14px 0 8px;
+      font-size:34px;
+      line-height:1.1;
+    }
+    .sub{
+      font-size:14px;
+      color:var(--muted);
+    }
+    .panel{
+      padding:22px;
+      display:grid;
+      gap:22px;
+    }
+    .field{
+      display:grid;
+      gap:10px;
+    }
+    .label{
+      font-size:14px;
+      font-weight:600;
+      color:#6b5e56;
+    }
+    .helper{
+      font-size:12px;
+      color:var(--muted);
+    }
+    .chips,.saved-row,.active-tags,.actions,.feedback{
+      display:flex;
+      flex-wrap:wrap;
+      gap:8px;
+    }
+    .chip,.saved-chip,.active-chip,.fb-btn,.btn{
+      appearance:none;
+      border:none;
+      cursor:pointer;
+      transition:.18s ease;
+      font:inherit;
+    }
+    .chip,.saved-chip{
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:var(--chip);
+      color:#6a5f58;
+      font-size:14px;
+    }
+    .chip:hover,.saved-chip:hover,.btn.soft:hover,.btn.ghost:hover,.fb-btn:hover{
+      transform:translateY(-1px);
+    }
+    .chip.active,.saved-chip.active,.fb-btn.active{
+      background:var(--accent);
+      color:#fff;
+      border-color:var(--accent);
+    }
+    .saved-wrap{
+      display:grid;
+      gap:8px;
+    }
+    .saved-title{
+      font-size:12px;
+      color:var(--muted);
+    }
+    .saved-item{
+      display:inline-flex;
+      align-items:center;
+      gap:4px;
+    }
+    .remove-x{
+      width:22px;
+      height:22px;
+      border:none;
+      background:transparent;
+      color:#a08f84;
+      cursor:pointer;
+      font-size:14px;
+    }
+    .active-chip{
+      background:var(--tag);
+      color:#6b5d56;
+      padding:10px 14px;
+      border-radius:999px;
+      font-size:14px;
+    }
+    .tag-input{
+      width:100%;
+      border:1px solid var(--line);
+      background:#fffdfa;
+      padding:13px 14px;
+      border-radius:14px;
+      font-size:15px;
+      outline:none;
+    }
+    .tag-input:focus,.select:focus{
+      box-shadow:0 0 0 3px #f3d8ca;
+    }
+    .grid2{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:16px;
+    }
+    .select{
+      width:100%;
+      border:1px solid var(--line);
+      background:#fffdfa;
+      color:#6b5d56;
+      padding:13px 14px;
+      border-radius:14px;
+      font-size:15px;
+      outline:none;
+    }
+    .btn{
+      padding:12px 16px;
+      border-radius:14px;
+      font-size:14px;
+    }
+    .btn.primary{
+      background:var(--accent);
+      color:#fff;
+      box-shadow:0 2px 8px rgba(214,143,108,.18);
+    }
+    .btn.soft{
+      background:var(--accent-soft);
+      color:#6b5d56;
+      border:1px solid var(--line);
+    }
+    .btn.ghost{
+      background:#fff8f4;
+      color:#6b5d56;
+      border:1px solid var(--line);
+    }
+    .status{
+      font-size:13px;
+      color:var(--muted);
+      padding-top:2px;
+    }
+    .results{
+      padding:22px;
+      margin-top:20px;
+    }
+    .results h2{
+      margin:0 0 12px;
+      font-size:22px;
+    }
+    .cards{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+      gap:16px;
+    }
+    .card{
+      border:1px solid var(--line2);
+      background:linear-gradient(180deg,#fffdfc 0%,#fff7f2 100%);
+      box-shadow:var(--shadow2);
+      border-radius:22px;
+      padding:16px;
+      display:grid;
+      gap:14px;
+    }
+    .card-top{
+      display:flex;
+      justify-content:space-between;
+      gap:12px;
+      align-items:flex-start;
+    }
+    .card-title{
+      font-size:19px;
+      font-weight:700;
+      margin-bottom:4px;
+    }
+    .card-style{
+      font-size:12px;
+      color:var(--muted);
+    }
+    .cal{
+      white-space:nowrap;
+      font-size:12px;
+      border:1px solid var(--line);
+      background:#fff;
+      color:#7a6d65;
+      border-radius:999px;
+      padding:6px 10px;
+    }
+    .section-title{
+      font-size:14px;
+      font-weight:700;
+      margin-bottom:6px;
+    }
+    ul{
+      margin:0;
+      padding-left:18px;
+      line-height:1.6;
+      font-size:14px;
+    }
+    .steps{
+      font-size:14px;
+      line-height:1.7;
+    }
+    .fb-btn{
+      padding:9px 12px;
+      border-radius:999px;
+      border:1px solid var(--line);
+      background:#fff;
+      color:#6d6058;
+      font-size:12px;
+    }
+    .empty{
+      color:var(--muted);
+      font-size:14px;
+      padding:4px 0 0;
+    }
+
+    @media (max-width: 900px){
+      .cards{ grid-template-columns:1fr 1fr; }
+    }
+    @media (max-width: 720px){
+      .wrap{ padding:16px; }
+      .grid2{ grid-template-columns:1fr; }
+      .cards{ grid-template-columns:1fr; }
+      h1{ font-size:28px; }
+      .actions{ flex-direction:column; align-items:stretch; }
+      .actions .btn{ width:100%; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="badge">Creative drink generator</div>
+      <h1>Fox Drink Lab</h1>
+      <div class="sub">输入食材，点选感觉和设备，再生成 3–5 个配方。</div>
+    </div>
+
+    <div class="panel">
+      <div class="field">
+        <div class="label">我有什么（食材）</div>
+        <div id="savedIngredientsWrap" class="saved-wrap" style="display:none;">
+          <div class="saved-title">已保存食材，下次可直接点选</div>
+          <div id="savedIngredients" class="saved-row"></div>
+        </div>
+        <div id="activeIngredients" class="active-tags"></div>
+        <input id="ingredientInput" class="tag-input" placeholder="比如 espresso、matcha、raspberry、coconut milk（输入后按 Enter 录入）" />
+        <div class="helper">输入完记得按 Enter，才会变成标签</div>
+      </div>
+
+      <div class="field">
+        <div class="label">我想要的感觉</div>
+        <div id="moodPresets" class="chips"></div>
+        <div id="activeMoods" class="active-tags"></div>
+        <input id="moodInput" class="tag-input" placeholder="可额外输入特殊需求，比如 像奶茶店但不腻（输入后按 Enter）" />
+        <div class="helper">预设可直接点，自定义内容输入后按 Enter</div>
+      </div>
+
+      <div class="field">
+        <div class="label">设备</div>
+        <div id="toolPresets" class="chips"></div>
+        <div id="activeTools" class="active-tags"></div>
+        <input id="toolInput" class="tag-input" placeholder="可额外输入自己的设备（输入后按 Enter）" />
+        <div class="helper">预设可直接点，自定义设备输入后按 Enter</div>
+      </div>
+
+      <div class="grid2">
+        <div class="field">
+          <div class="label">时间</div>
+          <select id="timeSelect" class="select"></select>
+        </div>
+        <div class="field">
+          <div class="label">温度</div>
+          <select id="tempSelect" class="select"></select>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="actions">
+          <button class="btn primary" id="generateBtn">Generate Recipes</button>
+          <button class="btn ghost" id="moreBtn">Generate More</button>
+          <button class="btn soft" id="creativeBtn">Be Creative</button>
+        </div>
+        <div class="status" id="statusText">未指定食材也可以生成 · 版本 0</div>
+      </div>
+    </div>
+
+    <div class="results" id="resultsBlock" style="display:none;">
+      <h2>Recipes</h2>
+      <div id="cards" class="cards"></div>
+    </div>
+  </div>
+
+  <script>
+    const PRESET_MOODS = ["清爽", "低卡", "奶茶店", "甜品感", "花香", "果香", "拍照好看", "不太酸"];
+    const PRESET_TOOLS = ["意式咖啡机", "Thermomix / 小美", "冷萃器具", "抹茶茶筅/抹茶碗", "搅拌机", "无设备"];
+    const TIME_OPTIONS = ["", "早上", "下午", "晚上", "甜品"];
+    const TEMP_OPTIONS = ["", "冷", "热", "都可以"];
+    const CREATIVE_INGREDIENT_POOL = [
+      "espresso","cold brew","matcha","green tea","black tea","pu'er","rose tea","osmanthus",
+      "milk","oat milk","coconut milk","sparkling water","raspberry","blueberry","lychee","pear",
+      "kumquat","honey","monk fruit","brown sugar","ice","collagen","chia seeds"
+    ];
+
+    const store = {
+      ingredients: [],
+      moods: [],
+      tools: [],
+      time: "",
+      temp: "",
+      recipes: [],
+      seed: 0,
+      feedback: {},
+      savedIngredients: []
+    };
+
+    const els = {
+      ingredientInput: document.getElementById("ingredientInput"),
+      moodInput: document.getElementById("moodInput"),
+      toolInput: document.getElementById("toolInput"),
+      activeIngredients: document.getElementById("activeIngredients"),
+      activeMoods: document.getElementById("activeMoods"),
+      activeTools: document.getElementById("activeTools"),
+      savedIngredients: document.getElementById("savedIngredients"),
+      savedIngredientsWrap: document.getElementById("savedIngredientsWrap"),
+      moodPresets: document.getElementById("moodPresets"),
+      toolPresets: document.getElementById("toolPresets"),
+      timeSelect: document.getElementById("timeSelect"),
+      tempSelect: document.getElementById("tempSelect"),
+      generateBtn: document.getElementById("generateBtn"),
+      moreBtn: document.getElementById("moreBtn"),
+      creativeBtn: document.getElementById("creativeBtn"),
+      statusText: document.getElementById("statusText"),
+      resultsBlock: document.getElementById("resultsBlock"),
+      cards: document.getElementById("cards")
+    };
+
+    function saveLocal() {
+      localStorage.setItem("fox-drink-saved-ingredients", JSON.stringify(store.savedIngredients));
+      localStorage.setItem("fox-drink-feedback", JSON.stringify(store.feedback));
+    }
+
+    function loadLocal() {
+      try {
+        const saved = JSON.parse(localStorage.getItem("fox-drink-saved-ingredients") || "[]");
+        if (Array.isArray(saved)) store.savedIngredients = saved;
+      } catch {}
+      try {
+        const fb = JSON.parse(localStorage.getItem("fox-drink-feedback") || "{}");
+        if (fb && typeof fb === "object") store.feedback = fb;
+      } catch {}
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function uniquePush(arr, value) {
+      const v = String(value || "").trim();
+      if (!v) return;
+      if (!arr.includes(v)) arr.push(v);
+    }
+
+    function removeValue(arr, value) {
+      const idx = arr.indexOf(value);
+      if (idx > -1) arr.splice(idx, 1);
+    }
+
+    function renderPresetButtons(container, list, activeList) {
+      container.innerHTML = "";
+      list.forEach(item => {
+        const btn = document.createElement("button");
+        btn.className = "chip" + (activeList.includes(item) ? " active" : "");
+        btn.textContent = item;
+        btn.type = "button";
+        btn.onclick = () => {
+          if (activeList.includes(item)) removeValue(activeList, item);
+          else uniquePush(activeList, item);
+          renderAll();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function renderActiveTags(container, list) {
+      container.innerHTML = "";
+      list.forEach(item => {
+        const btn = document.createElement("button");
+        btn.className = "active-chip";
+        btn.type = "button";
+        btn.textContent = item + " ×";
+        btn.onclick = () => {
+          removeValue(list, item);
+          renderAll();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    function renderSavedIngredients() {
+      if (!store.savedIngredients.length) {
+        els.savedIngredientsWrap.style.display = "none";
+        els.savedIngredients.innerHTML = "";
+        return;
+      }
+      els.savedIngredientsWrap.style.display = "grid";
+      els.savedIngredients.innerHTML = "";
+      store.savedIngredients.forEach(item => {
+        const wrap = document.createElement("div");
+        wrap.className = "saved-item";
+
+        const btn = document.createElement("button");
+        btn.className = "saved-chip" + (store.ingredients.includes(item) ? " active" : "");
+        btn.type = "button";
+        btn.textContent = item;
+        btn.onclick = () => {
+          if (store.ingredients.includes(item)) removeValue(store.ingredients, item);
+          else uniquePush(store.ingredients, item);
+          renderAll();
+        };
+
+        const x = document.createElement("button");
+        x.className = "remove-x";
+        x.type = "button";
+        x.textContent = "×";
+        x.title = "从已保存里删除";
+        x.onclick = () => {
+          removeValue(store.savedIngredients, item);
+          saveLocal();
+          renderAll();
+        };
+
+        wrap.appendChild(btn);
+        wrap.appendChild(x);
+        els.savedIngredients.appendChild(wrap);
+      });
+    }
+
+    function populateSelect(select, options) {
+      select.innerHTML = "";
+      options.forEach(item => {
+        const opt = document.createElement("option");
+        opt.value = item;
+        opt.textContent = item || "请选择";
+        select.appendChild(opt);
+      });
+    }
+
+    function randomPick(arr, min, max) {
+      const shuffled = [...arr].sort(() => Math.random() - 0.5);
+      const count = Math.max(min, Math.min(arr.length, Math.floor(Math.random() * (max - min + 1)) + min));
+      return shuffled.slice(0, count);
+    }
+
+    function splitIngredients(items) {
+      const garnishKeywords = [
+        "kumquat","金橘","mint","薄荷","lemon","柠檬","lime","青柠","orange","橙",
+        "berry","莓","fruit","果","salt","盐","syrup","糖浆","honey","蜂蜜","monk",
+        "sugar","糖","collagen","chia","boba","珍珠"
+      ];
+      const garnishes = [];
+      const mains = [];
+      items.forEach(item => {
+        const lower = item.toLowerCase();
+        if (garnishKeywords.some(keyword => lower.includes(keyword))) garnishes.push(item);
+        else mains.push(item);
+      });
+      return { mains: mains.length ? mains : items, garnishes };
+    }
+
+    function chooseAmount(ingredient) {
+      const lower = ingredient.toLowerCase();
+      if (lower.includes("espresso")) return "30ml";
+      if (lower.includes("cold brew") || lower.includes("coldbrew")) return "120–180ml";
+      if (lower.includes("milk") || lower.includes("奶")) return "80–150ml";
+      if (lower.includes("tea") || lower.includes("茶")) return "120–180ml";
+      if (lower.includes("matcha")) return "2–3g";
+      if (lower.includes("collagen")) return "1 serving (约5–10g)";
+      if (
+        lower.includes("raspberry") || lower.includes("blueberry") || lower.includes("lychee") ||
+        lower.includes("fruit") || lower.includes("莓") || lower.includes("梨") ||
+        lower.includes("kumquat") || lower.includes("金橘")
+      ) return "10–30g（约3–8颗/块）";
+      if (
+        lower.includes("honey") || lower.includes("sugar") || lower.includes("monk") ||
+        lower.includes("syrup") || lower.includes("糖")
+      ) return "5–10ml（约1–2 tsp）";
+      if (lower.includes("sparkling")) return "100–150ml";
+      if (lower.includes("ice")) return "120–180g（约1杯）";
+      return "10–50ml（按口味微调）";
+    }
+
+    function makeRecipe(name, style, picked, moodHints, temp, time) {
+      const { mains, garnishes } = splitIngredients(picked);
+      const ingredients = [
+        ...mains.map(item => `${item} ${chooseAmount(item)}`),
+        ...garnishes.map(item => `${item} ${chooseAmount(item)}`)
+      ];
+      const hasLayer = moodHints.includes("拍照好看");
+      const hotDrink = temp === "热";
+      const timeHint = time === "早上" ? "整体更干净提神。" : time === "晚上" ? "甜度和刺激感压低一点。" : "";
+      const garnishHint = garnishes.length ? `最后用 ${garnishes.join("、")} 做点缀或微调，不一定全部放满。` : "";
+      const steps = hasLayer
+        ? `${hotDrink ? "先分别处理茶底或咖啡与奶基底，保持主液温热；" : "先处理果泥或茶底，杯中加冰与主体液体；"}最后沿杯壁慢慢倒入颜色更深或更浓的部分，做出层次。${garnishHint}${timeHint}`
+        : `${hotDrink ? "先做热茶底或热奶基底，再加入风味材料与甜味调整。" : "按主液体 → 风味材料 → 甜味 → 冰块的顺序组合，边试边调到顺口。"}${garnishHint}${timeHint}`;
+
+      return {
+        name,
+        style,
+        calories: picked.some(x => x.toLowerCase().includes("half"))
+          ? "约 140–220 kcal"
+          : moodHints.includes("低卡")
+            ? "约 50–120 kcal"
+            : "约 90–180 kcal",
+        ingredients,
+        steps
+      };
+    }
+
+    function generateRecipes(storeObj, more = false, creative = false) {
+      const inputIngredients = storeObj.ingredients;
+      const moods = storeObj.moods;
+      const ingredients = inputIngredients.length
+        ? inputIngredients
+        : creative
+          ? randomPick(CREATIVE_INGREDIENT_POOL, 4, 8)
+          : randomPick(CREATIVE_INGREDIENT_POOL, 3, 6);
+
+      const count = more ? 5 : 3;
+      const names = ["清爽系特调", "轻甜果饮", "平衡奶感", "茶感气泡", "实验款", "意外好喝", "晨间提神", "晚间轻饮"];
+      const styles = [
+        moods.includes("清爽") ? "清爽轻盈" : "日常顺口",
+        moods.includes("奶茶店") ? "奶茶店灵感" : creative ? "自由发挥" : "家庭特调",
+        moods.includes("甜品感") ? "甜品向" : "轻甜平衡",
+        moods.includes("花香") ? "花香路线" : moods.includes("果香") ? "果香路线" : "混合风味",
+        moods.includes("拍照好看") ? "适合分层" : creative ? "有点新鲜" : "简单耐喝"
+      ];
+
+      const { mains, garnishes } = splitIngredients(ingredients);
+      const preferredMin = mains.length >= 4 ? 3 : Math.min(2, mains.length || 1);
+      const preferredMax = Math.min(mains.length || ingredients.length, more ? 5 : 4);
+
+      return Array.from({ length: count }).map((_, index) => {
+        const basePicked = randomPick(mains.length ? mains : ingredients, preferredMin, Math.max(preferredMin, preferredMax));
+        const garnishCount = garnishes.length ? Math.min(garnishes.length, Math.random() > 0.5 ? 2 : 1) : 0;
+        const garnishPicked = garnishCount ? randomPick(garnishes, garnishCount, garnishCount) : [];
+        const picked = [...basePicked, ...garnishPicked];
+        const recipe = makeRecipe(names[index], styles[index % styles.length], picked, moods, storeObj.temp, storeObj.time);
+        return {
+          ...recipe,
+          id: `${names[index]}-${index}-${picked.join("-")}`
+        };
+      });
+    }
+
+    function renderResults() {
+      if (!store.recipes.length) {
+        els.resultsBlock.style.display = "none";
+        els.cards.innerHTML = "";
+        return;
+      }
+      els.resultsBlock.style.display = "block";
+      els.cards.innerHTML = "";
+
+      store.recipes.forEach((recipe, idx) => {
+        const recipeId = recipe.id || `${recipe.name}-${idx}`;
+        const card = document.createElement("div");
+        card.className = "card";
+
+        const top = document.createElement("div");
+        top.className = "card-top";
+
+        const left = document.createElement("div");
+        left.innerHTML = `
+          <div class="card-title">${escapeHtml(recipe.name)}</div>
+          <div class="card-style">${escapeHtml(recipe.style)}</div>
+        `;
+
+        const cal = document.createElement("div");
+        cal.className = "cal";
+        cal.textContent = recipe.calories;
+
+        top.appendChild(left);
+        top.appendChild(cal);
+
+        const ing = document.createElement("div");
+        ing.innerHTML = `<div class="section-title">材料</div>`;
+        const ul = document.createElement("ul");
+        recipe.ingredients.forEach(item => {
+          const li = document.createElement("li");
+          li.textContent = item;
+          ul.appendChild(li);
+        });
+        ing.appendChild(ul);
+
+        const steps = document.createElement("div");
+        steps.innerHTML = `<div class="section-title">做法</div><div class="steps">${escapeHtml(recipe.steps)}</div>`;
+
+        const fb = document.createElement("div");
+        fb.className = "feedback";
+        [
+          ["喜欢", "like"],
+          ["不喜欢", "dislike"],
+          ["想做", "want"]
+        ].forEach(([label, value]) => {
+          const btn = document.createElement("button");
+          btn.className = "fb-btn" + (store.feedback[recipeId] === value ? " active" : "");
+          btn.type = "button";
+          btn.textContent = label;
+          btn.onclick = () => {
+            store.feedback[recipeId] = store.feedback[recipeId] === value ? null : value;
+            saveLocal();
+            renderResults();
+          };
+          fb.appendChild(btn);
+        });
+
+        card.appendChild(top);
+        card.appendChild(ing);
+        card.appendChild(steps);
+        card.appendChild(fb);
+        els.cards.appendChild(card);
+      });
+    }
+
+    function renderStatus() {
+      els.statusText.textContent = store.ingredients.length
+        ? `当前食材 ${store.ingredients.length} 个 · 版本 ${store.seed}`
+        : `未指定食材也可以生成 · 版本 ${store.seed}`;
+    }
+
+    function renderAll() {
+      renderPresetButtons(els.moodPresets, PRESET_MOODS, store.moods);
+      renderPresetButtons(els.toolPresets, PRESET_TOOLS, store.tools);
+      renderActiveTags(els.activeIngredients, store.ingredients);
+      renderActiveTags(els.activeMoods, store.moods);
+      renderActiveTags(els.activeTools, store.tools);
+      renderSavedIngredients();
+      renderStatus();
+      renderResults();
+    }
+
+    function bindTagInput(inputEl, targetList, saveToSaved = false) {
+      inputEl.addEventListener("keydown", e => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          const val = inputEl.value.trim();
+          if (!val) return;
+          uniquePush(targetList, val);
+          if (saveToSaved) {
+            uniquePush(store.savedIngredients, val);
+            saveLocal();
+          }
+          inputEl.value = "";
+          renderAll();
+        }
+      });
+    }
+
+    function init() {
+      loadLocal();
+      populateSelect(els.timeSelect, TIME_OPTIONS);
+      populateSelect(els.tempSelect, TEMP_OPTIONS);
+
+      els.timeSelect.addEventListener("change", e => {
+        store.time = e.target.value;
+      });
+      els.tempSelect.addEventListener("change", e => {
+        store.temp = e.target.value;
+      });
+
+      bindTagInput(els.ingredientInput, store.ingredients, true);
+      bindTagInput(els.moodInput, store.moods, false);
+      bindTagInput(els.toolInput, store.tools, false);
+
+      els.generateBtn.onclick = () => {
+        store.seed += 1;
+        store.recipes = generateRecipes(store, false, false);
+        renderAll();
+      };
+      els.moreBtn.onclick = () => {
+        store.seed += 1;
+        store.recipes = generateRecipes(store, true, false);
+        renderAll();
+      };
+      els.creativeBtn.onclick = () => {
+        store.seed += 1;
+        store.recipes = generateRecipes(store, true, true);
+        renderAll();
+      };
+
+      renderAll();
+    }
+
+    init();
+  </script>
+</body>
+</html>
