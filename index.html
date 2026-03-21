@@ -683,68 +683,6 @@
       const items = pool.items;
       const scoreMap = pool.scoreMap;
 
-      const profiles = items.map(i => getIngredientProfile(i));
-
-      // 👉 Step 1：选一个“主阵营”
-      const families = profiles.map(p => p.family);
-      const mainFamily = families[Math.floor(Math.random() * families.length)];
-
-     // 👉 Step 2：只允许同阵营 + 少量跨界
-      const allowed = items.filter(item => {
-    const p = getIngredientProfile(item);
-
-    if (p.family === mainFamily) return true;
-
-    // 允许轻微跨界（fruit / floral）
-    if (["fruit", "floral", "sweetener"].includes(p.family)) return true;
-
-    return false;
-  });
-
-    // 👉 Step 3：base只能一个
-     const baseCandidates = allowed.filter(i =>
-    getIngredientProfile(i).role.includes("base")
-  );
-
-     const base = weightedPick(baseCandidates, scoreMap, 1);
-
-   // 👉 Step 4：剩下再选
-  const restPool = allowed.filter(i => !base.includes(i));
-
-  const body = weightedPick(restPool, scoreMap, structure.body, i =>
-    getIngredientProfile(i).role.includes("body")
-  );
-
-  const accent = weightedPick(restPool, scoreMap, structure.accent, i =>
-    getIngredientProfile(i).role.includes("accent")
-  );
-
-  const sweet = weightedPick(restPool, scoreMap, structure.sweetener, i =>
-    getIngredientProfile(i).role.includes("sweetener")
-  );
-
-  const garnish = weightedPick(restPool, scoreMap, structure.garnish, i =>
-    getIngredientProfile(i).role.includes("garnish")
-  );
-
-  let picked = [...base, ...body, ...accent, ...sweet, ...garnish];
-
-  picked = [...new Set(picked)];
-
-  // 👉 Step 5：最后再做一次“防翻车检查”
-  const score = scoreCombination(picked, storeObj);
-
-  if (score < 0) {
-    // 如果太差，强行简化结构
-    picked = [...base, ...body.slice(0,1), ...accent.slice(0,1)];
-  }
-
-  return picked;
-}
-      const structure = getActiveStructure(storeObj.moods);
-      const items = pool.items;
-      const scoreMap = pool.scoreMap;
-
       const pickByRole = (role, count) =>
         weightedPick(items, scoreMap, count, item => getIngredientProfile(item).role.includes(role));
 
