@@ -4,16 +4,16 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Fox Drink Lab</title>
-  <link rel="icon" href="icon.png" />
-  <link rel="apple-touch-icon" href="icon.png" />
   <meta name="theme-color" content="#d68f6c" />
+  <link rel="icon" href="icon.png" />
+  <link rel="apple-touch-icon" sizes="180x180" href="icon.png" />
+
   <style>
     :root{
       --bg1:#fffaf7;
       --bg2:#fff3ec;
       --bg3:#fdf7f2;
       --card:#ffffffcc;
-      --white:#fff;
       --text:#4f463f;
       --muted:#8a7d74;
       --line:#ead7cc;
@@ -263,11 +263,6 @@
       color:#6d6058;
       font-size:12px;
     }
-    .empty{
-      color:var(--muted);
-      font-size:14px;
-      padding:4px 0 0;
-    }
 
     @media (max-width: 900px){
       .cards{ grid-template-columns:1fr 1fr; }
@@ -355,6 +350,63 @@
       "milk","oat milk","coconut milk","sparkling water","raspberry","blueberry","lychee","pear",
       "kumquat","honey","monk fruit","brown sugar","ice","collagen","chia seeds"
     ];
+
+    const INGREDIENT_LIBRARY = {
+      "espresso": { role:["base"], family:"coffee", weight:5, tags:["bitter","roasted","strong","caffeinated"], temp:["cold","hot"] },
+      "cold brew": { role:["base"], family:"coffee", weight:5, tags:["smooth","roasted","cold","caffeinated"], temp:["cold"] },
+      "matcha": { role:["base","accent"], family:"tea", weight:5, tags:["green","earthy","fresh","slightly-bitter","caffeinated"], temp:["cold","hot"] },
+      "green tea": { role:["base"], family:"tea", weight:5, tags:["fresh","light","green","caffeinated"], temp:["cold","hot"] },
+      "black tea": { role:["base"], family:"tea", weight:5, tags:["bold","tea","malty","caffeinated"], temp:["cold","hot"] },
+      "pu'er": { role:["base"], family:"tea", weight:4, tags:["earthy","deep","tea","caffeinated"], temp:["cold","hot"] },
+      "rose tea": { role:["base","accent"], family:"tea", weight:4, tags:["floral","soft","tea"], temp:["cold","hot"] },
+      "osmanthus": { role:["accent","garnish"], family:"floral", weight:3, tags:["floral","apricot","soft","elegant"], temp:["cold","hot"] },
+      "milk": { role:["body"], family:"dairy", weight:5, tags:["creamy","soft","rich","milky"], temp:["cold","hot"] },
+      "oat milk": { role:["body"], family:"milk-alt", weight:5, tags:["creamy","grainy","soft","light-sweet"], temp:["cold","hot"] },
+      "coconut milk": { role:["body"], family:"milk-alt", weight:4, tags:["creamy","tropical","sweet","light"], temp:["cold","hot"] },
+      "sparkling water": { role:["base","body"], family:"water", weight:4, tags:["fresh","bubbly","light","clean"], temp:["cold"] },
+      "raspberry": { role:["accent","garnish"], family:"fruit", weight:3, tags:["fruit","bright","acidic","berry"], temp:["cold"] },
+      "blueberry": { role:["accent","garnish"], family:"fruit", weight:3, tags:["fruit","soft","berry","round"], temp:["cold"] },
+      "lychee": { role:["accent","garnish"], family:"fruit", weight:4, tags:["fruit","sweet","soft","juicy","floral"], temp:["cold"] },
+      "pear": { role:["accent","garnish"], family:"fruit", weight:4, tags:["fruit","soft","watery","light-sweet"], temp:["cold"] },
+      "kumquat": { role:["accent","garnish"], family:"fruit", weight:2, tags:["fruit","citrus","bright","acidic"], temp:["cold","hot"] },
+      "honey": { role:["sweetener","accent"], family:"sweetener", weight:4, tags:["sweet","round","warm"], temp:["cold","hot"] },
+      "monk fruit": { role:["sweetener"], family:"sweetener", weight:4, tags:["sweet","low-cal"], temp:["cold","hot"] },
+      "brown sugar": { role:["sweetener","accent"], family:"sweetener", weight:4, tags:["sweet","caramel","rich"], temp:["cold","hot"] },
+      "ice": { role:["garnish","body"], family:"ice", weight:5, tags:["cold","refreshing","dilution"], temp:["cold"] },
+      "collagen": { role:["accent"], family:"functional", weight:2, tags:["functional","neutral"], temp:["cold","hot"] },
+      "chia seeds": { role:["garnish","accent"], family:"functional", weight:2, tags:["functional","texture"], temp:["cold"] }
+    };
+
+    const MOOD_RULES = {
+      "清爽": { preferFamilies:["tea","water","fruit"], preferTags:["fresh","light","bubbly","watery"], avoidTags:["rich","deep"] },
+      "低卡": { preferFamilies:["tea","water","fruit","sweetener"], preferTags:["low-cal","light","fresh"], avoidTags:["rich","caramel"] },
+      "奶茶店": { preferFamilies:["tea","dairy","milk-alt","sweetener"], preferTags:["creamy","tea","round"] },
+      "甜品感": { preferFamilies:["dairy","milk-alt","sweetener"], preferTags:["creamy","sweet","round","rich"] },
+      "花香": { preferFamilies:["floral","tea","fruit"], preferTags:["floral","elegant","soft"] },
+      "果香": { preferFamilies:["fruit","tea","water"], preferTags:["fruit","juicy","bright","berry"] },
+      "拍照好看": { preferFamilies:["tea","fruit","milk-alt"], preferTags:["floral","berry","green","bubbly"] },
+      "不太酸": { preferTags:["soft","round","sweet"], avoidTags:["acidic","citrus","bright"] }
+    };
+
+    const PAIRING_RULES = [
+      { all:["coffee","acidic"], score:-3 },
+      { all:["coffee","soft"], score:2 },
+      { all:["tea","floral"], score:3 },
+      { all:["creamy","floral"], score:1 },
+      { all:["bubbly","creamy"], score:-2 },
+      { all:["green","berry"], score:2 },
+      { all:["roasted","caramel"], score:2 },
+      { all:["citrus","dairy"], score:-3 },
+      { all:["functional","soft"], score:1 }
+    ];
+
+    const STRUCTURE_PRESETS = {
+      default: { base:1, body:1, accent:1, sweetener:1, garnish:1 },
+      清爽: { base:1, body:1, accent:1, sweetener:0, garnish:1 },
+      低卡: { base:1, body:1, accent:1, sweetener:0, garnish:1 },
+      奶茶店: { base:1, body:1, accent:1, sweetener:1, garnish:0 },
+      甜品感: { base:1, body:1, accent:1, sweetener:1, garnish:1 }
+    };
 
     const store = {
       ingredients: [],
@@ -511,6 +563,156 @@
       return shuffled.slice(0, count);
     }
 
+    function getIngredientProfile(name) {
+      return INGREDIENT_LIBRARY[name] || {
+        role:["accent"],
+        family:"custom",
+        weight:2,
+        tags:["custom"],
+        temp:["cold","hot"]
+      };
+    }
+
+    function matchesTemp(profile, temp) {
+      if (!temp || temp === "都可以") return true;
+      return profile.temp.includes(temp === "热" ? "hot" : "cold");
+    }
+
+    function getActiveStructure(moods) {
+      for (const mood of moods) {
+        if (STRUCTURE_PRESETS[mood]) return STRUCTURE_PRESETS[mood];
+      }
+      return STRUCTURE_PRESETS.default;
+    }
+
+    function scoreIngredient(name, storeObj) {
+      const profile = getIngredientProfile(name);
+      let score = profile.weight || 1;
+
+      if (!matchesTemp(profile, storeObj.temp)) score -= 4;
+      if (storeObj.time === "晚上" && profile.tags.includes("caffeinated")) score -= 2;
+      if (storeObj.time === "早上" && profile.tags.includes("caffeinated")) score += 2;
+
+      storeObj.moods.forEach(mood => {
+        const rule = MOOD_RULES[mood];
+        if (!rule) return;
+
+        if (rule.preferFamilies && rule.preferFamilies.includes(profile.family)) score += 2;
+        if (rule.preferTags) {
+          rule.preferTags.forEach(tag => {
+            if (profile.tags.includes(tag)) score += 1.5;
+          });
+        }
+        if (rule.avoidTags) {
+          rule.avoidTags.forEach(tag => {
+            if (profile.tags.includes(tag)) score -= 2;
+          });
+        }
+      });
+
+      return score;
+    }
+
+    function weightedPick(items, scoreMap, count, predicate = null) {
+      const pool = items
+        .filter(item => predicate ? predicate(item) : true)
+        .map(item => ({ item, score: Math.max(0.1, scoreMap[item] ?? 1) }));
+
+      const results = [];
+      const used = new Set();
+
+      while (results.length < count && pool.length) {
+        const available = pool.filter(x => !used.has(x.item));
+        if (!available.length) break;
+
+        const total = available.reduce((sum, x) => sum + x.score, 0);
+        let r = Math.random() * total;
+        let chosen = available[available.length - 1].item;
+
+        for (const entry of available) {
+          r -= entry.score;
+          if (r <= 0) {
+            chosen = entry.item;
+            break;
+          }
+        }
+
+        used.add(chosen);
+        results.push(chosen);
+      }
+
+      return results;
+    }
+
+    function scoreCombination(items, storeObj) {
+      const tags = items.flatMap(item => getIngredientProfile(item).tags);
+      const families = items.map(item => getIngredientProfile(item).family);
+      let score = 0;
+
+      PAIRING_RULES.forEach(rule => {
+        const matched = rule.all.every(keyword => tags.includes(keyword) || families.includes(keyword));
+        if (matched) score += rule.score;
+      });
+
+      if (storeObj.moods.includes("低卡") && items.some(item => ["brown sugar","milk"].includes(item))) score -= 2;
+      if (
+        storeObj.moods.includes("奶茶店") &&
+        items.some(item => getIngredientProfile(item).family === "tea") &&
+        items.some(item => ["dairy","milk-alt"].includes(getIngredientProfile(item).family))
+      ) score += 3;
+      if (storeObj.moods.includes("拍照好看") && items.some(item => ["raspberry","blueberry","matcha","rose tea","sparkling water"].includes(item))) score += 2;
+      if (storeObj.moods.includes("不太酸") && items.some(item => getIngredientProfile(item).tags.includes("acidic"))) score -= 3;
+
+      return score;
+    }
+
+    function buildStructuredRecipePool(inputIngredients, storeObj, creative) {
+      const source = inputIngredients.length
+        ? inputIngredients
+        : creative
+          ? randomPick(CREATIVE_INGREDIENT_POOL, 6, 10)
+          : randomPick(CREATIVE_INGREDIENT_POOL, 5, 8);
+
+      const items = [...new Set(source)];
+      const scoreMap = Object.fromEntries(items.map(item => [item, scoreIngredient(item, storeObj)]));
+      return { items, scoreMap };
+    }
+
+    function composeRecipeIngredients(pool, storeObj) {
+      const structure = getActiveStructure(storeObj.moods);
+      const items = pool.items;
+      const scoreMap = pool.scoreMap;
+
+      const pickByRole = (role, count) =>
+        weightedPick(items, scoreMap, count, item => getIngredientProfile(item).role.includes(role));
+
+      let picked = [
+        ...pickByRole("base", structure.base),
+        ...pickByRole("body", structure.body),
+        ...pickByRole("accent", structure.accent),
+        ...pickByRole("sweetener", structure.sweetener),
+        ...pickByRole("garnish", structure.garnish)
+      ].filter(Boolean);
+
+      picked = [...new Set(picked)];
+
+      if (picked.length < 3) {
+        const fillers = weightedPick(items, scoreMap, 4, item => !picked.includes(item));
+        picked = [...new Set([...picked, ...fillers])];
+      }
+
+      const comboScore = scoreCombination(picked, storeObj);
+      if (comboScore < 0) {
+        const safer = picked.filter(item =>
+          !getIngredientProfile(item).tags.includes("acidic") ||
+          !picked.some(x => getIngredientProfile(x).family === "coffee")
+        );
+        if (safer.length >= 3) picked = safer;
+      }
+
+      return picked;
+    }
+
     function splitIngredients(items) {
       const garnishKeywords = [
         "kumquat","金橘","mint","薄荷","lemon","柠檬","lime","青柠","orange","橙",
@@ -519,19 +721,23 @@
       ];
       const garnishes = [];
       const mains = [];
+
       items.forEach(item => {
         const lower = item.toLowerCase();
         if (garnishKeywords.some(keyword => lower.includes(keyword))) garnishes.push(item);
         else mains.push(item);
       });
+
       return { mains: mains.length ? mains : items, garnishes };
     }
 
     function chooseAmount(ingredient) {
       const lower = ingredient.toLowerCase();
+      const profile = getIngredientProfile(ingredient);
+
       if (lower.includes("espresso")) return "30ml";
       if (lower.includes("cold brew") || lower.includes("coldbrew")) return "120–180ml";
-      if (lower.includes("milk") || lower.includes("奶")) return "80–150ml";
+      if (lower.includes("milk") || lower.includes("奶")) return profile.tags.includes("rich") ? "90–130ml" : "100–150ml";
       if (lower.includes("tea") || lower.includes("茶")) return "120–180ml";
       if (lower.includes("matcha")) return "2–3g";
       if (lower.includes("collagen")) return "1 serving (约5–10g)";
@@ -539,14 +745,15 @@
         lower.includes("raspberry") || lower.includes("blueberry") || lower.includes("lychee") ||
         lower.includes("fruit") || lower.includes("莓") || lower.includes("梨") ||
         lower.includes("kumquat") || lower.includes("金橘")
-      ) return "10–30g（约3–8颗/块）";
+      ) return profile.tags.includes("acidic") ? "8–18g（约2–5颗/片）" : "12–30g（约3–8颗/块）";
       if (
         lower.includes("honey") || lower.includes("sugar") || lower.includes("monk") ||
         lower.includes("syrup") || lower.includes("糖")
-      ) return "5–10ml（约1–2 tsp）";
+      ) return profile.tags.includes("low-cal") ? "3–6ml（约1 tsp）" : "5–12ml（约1–2.5 tsp）";
       if (lower.includes("sparkling")) return "100–150ml";
       if (lower.includes("ice")) return "120–180g（约1杯）";
-      return "10–50ml（按口味微调）";
+      if (profile.role.includes("garnish")) return "1–2 tsp / 少量点缀";
+      return "10–50ml（按结构微调）";
     }
 
     function makeRecipe(name, style, picked, moodHints, temp, time) {
@@ -555,13 +762,29 @@
         ...mains.map(item => `${item} ${chooseAmount(item)}`),
         ...garnishes.map(item => `${item} ${chooseAmount(item)}`)
       ];
+
+      const profiles = picked.map(item => getIngredientProfile(item));
       const hasLayer = moodHints.includes("拍照好看");
       const hotDrink = temp === "热";
-      const timeHint = time === "早上" ? "整体更干净提神。" : time === "晚上" ? "甜度和刺激感压低一点。" : "";
-      const garnishHint = garnishes.length ? `最后用 ${garnishes.join("、")} 做点缀或微调，不一定全部放满。` : "";
-      const steps = hasLayer
-        ? `${hotDrink ? "先分别处理茶底或咖啡与奶基底，保持主液温热；" : "先处理果泥或茶底，杯中加冰与主体液体；"}最后沿杯壁慢慢倒入颜色更深或更浓的部分，做出层次。${garnishHint}${timeHint}`
-        : `${hotDrink ? "先做热茶底或热奶基底，再加入风味材料与甜味调整。" : "按主液体 → 风味材料 → 甜味 → 冰块的顺序组合，边试边调到顺口。"}${garnishHint}${timeHint}`;
+      const hasTea = profiles.some(p => p.family === "tea");
+      const hasCoffee = profiles.some(p => p.family === "coffee");
+      const hasCreamy = profiles.some(p => p.tags.includes("creamy"));
+      const hasBubbly = profiles.some(p => p.tags.includes("bubbly"));
+      const hasFloral = profiles.some(p => p.tags.includes("floral"));
+      const hasAcidic = profiles.some(p => p.tags.includes("acidic"));
+
+      const timeHint =
+        time === "早上" ? "整体会更提神、收得更干净。"
+        : time === "晚上" ? "甜度和刺激感会压低一点，更轻松。"
+        : "";
+
+      let method = "按 base → body → accent → sweetener → garnish 的顺序组合，边试边微调。";
+      if (hasTea && hasCreamy) method = hotDrink ? "先泡好茶底，再加入奶体与甜味，最后补花香或果香点缀。" : "先做茶底，杯中加冰与奶体，再沿杯壁倒入茶底和风味层。";
+      if (hasCoffee && hasCreamy) method = hotDrink ? "先萃咖啡，再与奶体结合，甜味后加，避免太腻。" : "先加冰与奶体，再缓缓倒入咖啡，最后补风味材料。";
+      if (hasBubbly) method = "先做浓一点的主底，再加冰，最后补气泡水，避免气泡先散掉。";
+      if (hasFloral && hasCreamy) method += " 花香只要轻轻托住，不要压过主体。";
+      if (hasAcidic && hasCreamy) method += " 酸感果料要控量，别让奶感发尖。";
+      if (hasLayer) method += " 想更好看就把颜色深的部分最后沿杯壁慢慢倒入。";
 
       return {
         name,
@@ -570,46 +793,12 @@
           ? "约 140–220 kcal"
           : moodHints.includes("低卡")
             ? "约 50–120 kcal"
-            : "约 90–180 kcal",
+            : hasCreamy && picked.some(x => ["brown sugar","honey"].includes(x))
+              ? "约 110–190 kcal"
+              : "约 80–160 kcal",
         ingredients,
-        steps
+        steps: `${method}${garnishes.length ? ` 最后用 ${garnishes.join("、")} 收尾或点缀。` : ""}${timeHint}`
       };
-    }
-
-    function generateRecipes(storeObj, more = false, creative = false) {
-      const inputIngredients = storeObj.ingredients;
-      const moods = storeObj.moods;
-      const ingredients = inputIngredients.length
-        ? inputIngredients
-        : creative
-          ? randomPick(CREATIVE_INGREDIENT_POOL, 4, 8)
-          : randomPick(CREATIVE_INGREDIENT_POOL, 3, 6);
-
-      const count = more ? 5 : 3;
-      const names = ["清爽系特调", "轻甜果饮", "平衡奶感", "茶感气泡", "实验款", "意外好喝", "晨间提神", "晚间轻饮"];
-      const styles = [
-        moods.includes("清爽") ? "清爽轻盈" : "日常顺口",
-        moods.includes("奶茶店") ? "奶茶店灵感" : creative ? "自由发挥" : "家庭特调",
-        moods.includes("甜品感") ? "甜品向" : "轻甜平衡",
-        moods.includes("花香") ? "花香路线" : moods.includes("果香") ? "果香路线" : "混合风味",
-        moods.includes("拍照好看") ? "适合分层" : creative ? "有点新鲜" : "简单耐喝"
-      ];
-
-      const { mains, garnishes } = splitIngredients(ingredients);
-      const preferredMin = mains.length >= 4 ? 3 : Math.min(2, mains.length || 1);
-      const preferredMax = Math.min(mains.length || ingredients.length, more ? 5 : 4);
-
-      return Array.from({ length: count }).map((_, index) => {
-        const basePicked = randomPick(mains.length ? mains : ingredients, preferredMin, Math.max(preferredMin, preferredMax));
-        const garnishCount = garnishes.length ? Math.min(garnishes.length, Math.random() > 0.5 ? 2 : 1) : 0;
-        const garnishPicked = garnishCount ? randomPick(garnishes, garnishCount, garnishCount) : [];
-        const picked = [...basePicked, ...garnishPicked];
-        const recipe = makeRecipe(names[index], styles[index % styles.length], picked, moods, storeObj.temp, storeObj.time);
-        return {
-          ...recipe,
-          id: `${names[index]}-${index}-${picked.join("-")}`
-        };
-      });
     }
 
     function renderResults() {
@@ -657,11 +846,7 @@
 
         const fb = document.createElement("div");
         fb.className = "feedback";
-        [
-          ["喜欢", "like"],
-          ["不喜欢", "dislike"],
-          ["想做", "want"]
-        ].forEach(([label, value]) => {
+        [["喜欢","like"],["不喜欢","dislike"],["想做","want"]].forEach(([label, value]) => {
           const btn = document.createElement("button");
           btn.className = "fb-btn" + (store.feedback[recipeId] === value ? " active" : "");
           btn.type = "button";
@@ -697,6 +882,40 @@
       renderSavedIngredients();
       renderStatus();
       renderResults();
+    }
+
+    function generateRecipes(storeObj, more = false, creative = false) {
+      const pool = buildStructuredRecipePool(storeObj.ingredients, storeObj, creative);
+      if (!pool.items.length) return [];
+
+      const count = more ? 5 : 3;
+      const names = ["清爽系特调","轻甜果饮","平衡奶感","茶感气泡","实验款","意外好喝","晨间提神","晚间轻饮"];
+      const styles = [
+        storeObj.moods.includes("清爽") ? "清爽轻盈" : "日常顺口",
+        storeObj.moods.includes("奶茶店") ? "奶茶店灵感" : creative ? "自由发挥" : "家庭特调",
+        storeObj.moods.includes("甜品感") ? "甜品向" : "轻甜平衡",
+        storeObj.moods.includes("花香") ? "花香路线" : storeObj.moods.includes("果香") ? "果香路线" : "混合风味",
+        storeObj.moods.includes("拍照好看") ? "适合分层" : creative ? "有点新鲜" : "简单耐喝"
+      ];
+
+      const recipes = [];
+      let tries = 0;
+
+      while (recipes.length < count && tries < count * 5) {
+        tries += 1;
+        const picked = composeRecipeIngredients(pool, storeObj);
+        const comboKey = picked.slice().sort().join("|");
+        if (recipes.some(r => r.comboKey === comboKey)) continue;
+
+        const recipe = makeRecipe(names[recipes.length], styles[recipes.length % styles.length], picked, storeObj.moods, storeObj.temp, storeObj.time);
+        recipes.push({
+          ...recipe,
+          comboKey,
+          id: `${names[recipes.length]}-${recipes.length}-${picked.join("-")}`
+        });
+      }
+
+      return recipes.map(({ comboKey, ...rest }) => rest);
     }
 
     function bindTagInput(inputEl, targetList, saveToSaved = false) {
